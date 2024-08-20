@@ -1,7 +1,5 @@
 import streamlit as st
 from docx import Document
-from docx.shared import Inches
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from datetime import datetime
 import matplotlib.pyplot as plt
 
@@ -93,7 +91,6 @@ rubricas = {
 def procesar_calificaciones(calificaciones):
     promedios = {aspecto: sum(valores[1] for valores in lista) / len(lista) for aspecto, lista in calificaciones.items()}
     promedios_ponderados = {aspecto: (promedio / 5) * 20 for aspecto, promedio in promedios.items()}
-
     calificacion_final = sum(promedios_ponderados.values()) / len(promedios_ponderados) * 5
     return promedios_ponderados, calificacion_final
 
@@ -101,15 +98,11 @@ def procesar_calificaciones(calificaciones):
 def generar_grafico(promedios_ponderados):
     aspectos = list(promedios_ponderados.keys())
     valores = list(promedios_ponderados.values())
-
     plt.figure(figsize=(10, 6))
     plt.barh(aspectos, valores, color='skyblue')
     plt.xlabel('Nivel de Cumplimiento (sobre 20)')
     plt.title('Gráfico de Nivel de Cumplimiento por Aspecto')
     plt.xlim(0, 20)
-
-    plt.tight_layout()
-    plt.savefig('grafico_cumplimiento.png')
     st.pyplot(plt)
 
 # Generar la conclusión general basada en la calificación final
@@ -243,20 +236,23 @@ def main():
     for aspecto in rubricas.keys():
         st.subheader(aspecto)
         for pregunta in rubricas[aspecto].keys():
-            calificacion = st.selectbox(pregunta, options=list(rubricas[aspecto][pregunta].keys()), format_func=lambda x: f'{x}: {rubricas[aspecto][pregunta][x]}')
+            calificacion = st.selectbox(pregunta, options=list(rubricas[aspecto][pregunta].keys()), format_func=lambda x: f'{x}: {rubricas[aspecto][pregunta][x]}', key=pregunta)
             calificaciones[aspecto].append((pregunta, calificacion))
 
-    if st.button("Generar Informe"):
-        nombre_auditor = st.text_input("Nombre del Auditor")
-        nombre_compania = st.text_input("Nombre de la Compañía Auditora")
-        fecha_evaluacion = st.date_input("Fecha de Evaluación")
-        destinatario = st.text_input("Destinatario del Informe")
-        mensaje = st.text_area("Carta de Introducción")
+    nombre_auditor = st.text_input("Nombre del Auditor")
+    nombre_compania = st.text_input("Nombre de la Compañía Auditora")
+    fecha_evaluacion = st.date_input("Fecha de Evaluación")
+    destinatario = st.text_input("Destinatario del Informe")
+    mensaje = st.text_area("Carta de Introducción")
 
+    if st.button("Generar Informe"):
         if not all([nombre_auditor, nombre_compania, fecha_evaluacion, destinatario, mensaje]):
             st.error("Debe completar todos los campos para generar el informe.")
         else:
             promedios_ponderados, calificacion_final = procesar_calificaciones(calificaciones)
+            conclusion = generar_conclusion(calificacion_final)
+            st.write(conclusion)
+            generar_grafico(promedios_ponderados)
             generar_informe_word(calificaciones, promedios_ponderados, calificacion_final,
                                  nombre_auditor, nombre_compania, fecha_evaluacion,
                                  destinatario, mensaje)
