@@ -3,6 +3,7 @@ from docx import Document
 from datetime import datetime
 import matplotlib.pyplot as plt
 from docx.shared import Inches
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT  # Aseguramos que esta constante esté importada
 import os
 
 # Definir las descripciones de las rúbricas específicas para cada pregunta
