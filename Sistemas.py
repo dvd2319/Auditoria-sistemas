@@ -235,7 +235,7 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     # Añadir pie de página
     section = document.sections[0]
     footer = section.footer
-    footer_paragraph = footer.paragraphs[0]
+    footer_paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
     footer_paragraph.text = f'Compañía Auditora: {nombre_compania} - Fecha de Evaluación: {fecha_evaluacion}'
     footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
