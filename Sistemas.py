@@ -2,8 +2,6 @@ import streamlit as st
 from docx import Document
 from datetime import datetime
 import matplotlib.pyplot as plt
-from docx.shared import Inches
-import os
 
 # Definir las descripciones de las rúbricas específicas para cada pregunta
 rubricas = {
@@ -100,24 +98,12 @@ def procesar_calificaciones(calificaciones):
 def generar_grafico(promedios_ponderados):
     aspectos = list(promedios_ponderados.keys())
     valores = list(promedios_ponderados.values())
-    
-    # Crear el gráfico
     plt.figure(figsize=(10, 6))
     plt.barh(aspectos, valores, color='skyblue')
     plt.xlabel('Nivel de Cumplimiento (sobre 20)')
     plt.title('Gráfico de Nivel de Cumplimiento por Aspecto')
     plt.xlim(0, 20)
-    
-    # Guardar el gráfico
-    plt.tight_layout()
-    grafico_path = 'grafico_cumplimiento.png'
-    plt.savefig(grafico_path)
-    plt.close()
-    
-    # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
-    
-    return grafico_path
 
 # Generar la conclusión general basada en la calificación final
 def generar_conclusion(calificacion_final):
@@ -225,17 +211,13 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
 
     # Añadir gráfico de barras
     document.add_heading('Gráfico de Nivel de Cumplimiento por Aspecto', level=1)
-    grafico_path = generar_grafico(promedios_ponderados)
-    
-    if os.path.exists(grafico_path):
-        document.add_picture(grafico_path, width=Inches(6))
-    else:
-        st.error(f"Error: El archivo de imagen {grafico_path} no se encontró.")
-    
+    generar_grafico(promedios_ponderados)
+    document.add_picture('grafico_cumplimiento.png', width=Inches(6))
+
     # Añadir pie de página
     section = document.sections[0]
     footer = section.footer
-    footer_paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+    footer_paragraph = footer.paragraphs[0]
     footer_paragraph.text = f'Compañía Auditora: {nombre_compania} - Fecha de Evaluación: {fecha_evaluacion}'
     footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
