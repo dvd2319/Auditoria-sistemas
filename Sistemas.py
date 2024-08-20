@@ -2,6 +2,7 @@ import streamlit as st
 from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from datetime import datetime
 import matplotlib.pyplot as plt
 
 # Definir las descripciones de las rúbricas específicas para cada pregunta
@@ -109,6 +110,7 @@ def generar_grafico(promedios_ponderados):
 
     plt.tight_layout()
     plt.savefig('grafico_cumplimiento.png')
+    st.pyplot(plt)
 
 # Generar la conclusión general basada en la calificación final
 def generar_conclusion(calificacion_final):
@@ -227,26 +229,30 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
     document.save('informe.docx')
-    st.success("El informe se ha generado correctamente en informe.docx")
 
-# Interfaz gráfica con Streamlit
+    with open('informe.docx', 'rb') as f:
+        st.download_button(label="Descargar Informe", data=f, file_name="informe.docx")
+
+# Interfaz gráfica con streamlit
 def main():
     st.title("Evaluación de Cumplimiento ISO 37001")
+    st.write("Este aplicativo permite evaluar el cumplimiento de la norma ISO 37001 en la gestión antisoborno de su organización.")
+
     calificaciones = {key: [] for key in rubricas.keys()}
 
-    nombre_auditor = st.text_input("Nombre del Auditor")
-    nombre_compania = st.text_input("Nombre de la Compañía Auditora")
-    fecha_evaluacion = st.date_input("Fecha de Evaluación").strftime("%d/%m/%Y")
-    destinatario = st.text_input("Nombre del Destinatario del Informe")
-    mensaje = st.text_area("Carta de Introducción")
-
     for aspecto in rubricas.keys():
-        st.header(aspecto)
+        st.subheader(aspecto)
         for pregunta in rubricas[aspecto].keys():
-            calificacion = st.selectbox(pregunta, options=list(rubricas[aspecto][pregunta].keys()), format_func=lambda x: f"{x}: {rubricas[aspecto][pregunta][x]}")
+            calificacion = st.selectbox(pregunta, options=list(rubricas[aspecto][pregunta].keys()), format_func=lambda x: f'{x}: {rubricas[aspecto][pregunta][x]}')
             calificaciones[aspecto].append((pregunta, calificacion))
 
     if st.button("Generar Informe"):
+        nombre_auditor = st.text_input("Nombre del Auditor")
+        nombre_compania = st.text_input("Nombre de la Compañía Auditora")
+        fecha_evaluacion = st.date_input("Fecha de Evaluación")
+        destinatario = st.text_input("Destinatario del Informe")
+        mensaje = st.text_area("Carta de Introducción")
+
         if not all([nombre_auditor, nombre_compania, fecha_evaluacion, destinatario, mensaje]):
             st.error("Debe completar todos los campos para generar el informe.")
         else:
